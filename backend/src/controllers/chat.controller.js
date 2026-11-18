@@ -4,9 +4,6 @@ const { uploadChatImage, deleteChatImage } = require("../storage/imagekit.servic
 // Five hours in milliseconds
 const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
 
-/**
- * Clean up expired messages and delete their ImageKit cloud files
- */
 async function cleanupExpiredMessages() {
   try {
     const now = new Date();
@@ -32,10 +29,6 @@ async function cleanupExpiredMessages() {
   }
 }
 
-/**
- * Send a message (text and/or image)
- * Route: POST /api/chat/send
- */
 async function sendMessage(req, res) {
   try {
     const { senderId, senderName, text } = req.body;
@@ -88,12 +81,6 @@ async function sendMessage(req, res) {
   }
 }
 
-/**
- * Get active messages
- * When other user views messages, marks unseen messages as seen
- * and starts the 5-hour self-destruct timer on both message and image.
- * Route: GET /api/chat/messages?deviceId=xyz
- */
 async function getMessages(req, res) {
   try {
     const { deviceId } = req.query;
@@ -154,10 +141,6 @@ async function getMessages(req, res) {
   }
 }
 
-/**
- * Clear all chat messages and delete images from ImageKit
- * Route: DELETE /api/chat/clear
- */
 async function clearChat(req, res) {
   try {
     const allMessages = await Message.find({});
@@ -165,7 +148,7 @@ async function clearChat(req, res) {
       if (msg.imageFileId) {
         try {
           await deleteChatImage(msg.imageFileId);
-        } catch (_) {}
+        } catch (_) { }
       }
     }
     await Message.deleteMany({});
