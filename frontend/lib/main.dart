@@ -16,10 +16,10 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.dark,
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F141C),
+        scaffoldBackgroundColor: const Color(0xFF08090C),
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF00A884), // WhatsApp Dark Green / Emerald
-          surface: Color(0xFF1E2633),
+          primary: Color(0xFF7C3AED), // Phantom Violet
+          surface: Color(0xFF0E1117), // Stealth Obsidian
         ),
       ),
       home: const LoadingScreen(),

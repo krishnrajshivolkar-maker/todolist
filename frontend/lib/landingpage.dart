@@ -6,6 +6,33 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
+/// Bespoke "Phantom Vault" privacy color system
+class VaultColors {
+  // Base backgrounds
+  static const Color background = Color(0xFF08090C); // Ultra-deep void obsidian
+  static const Color surface = Color(0xFF0E1117); // Stealth graphite header/input
+  static const Color surfaceBorder = Color(0xFF1A1F2C); // Fine structural border
+  static const Color bannerBg = Color(0xFF10131E); // Top security strip
+
+  // Cryptographic & Secret accents
+  static const Color cyberViolet = Color(0xFF7C3AED); // Primary encryption signature
+  static const Color violetLight = Color(0xFFA78BFA); // Seen / Active highlights
+  static const Color cyanShield = Color(0xFF06B6D4); // Verified secrecy badge
+  static const Color flameTimer = Color(0xFFFB923C); // 5-hour disappearing indicator
+  static const Color errorRed = Color(0xFFEF4444); // Error / Deletion
+
+  // Message Bubbles
+  static const Color myBubble = Color(0xFF231640); // Midnight Royal Violet (Right)
+  static const Color myBubbleBorder = Color(0xFF3F2773); // Fine Violet perimeter
+  static const Color theirBubble = Color(0xFF131622); // Tactical Carbon Slate (Left)
+  static const Color theirBubbleBorder = Color(0xFF212738); // Fine Carbon perimeter
+
+  // Typography
+  static const Color textPrimary = Color(0xFFF8FAFC); // Glacier White
+  static const Color textSecondary = Color(0xFFCBD5E1); // Silver Mist
+  static const Color textMuted = Color(0xFF64748B); // Titanium Slate
+}
+
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
 
@@ -14,9 +41,9 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  // Device identity (No login required - persistent identifier)
+  // Device identity (Zero login required - persistent identifier)
   late String myDeviceId;
-  String myDisplayName = 'Me';
+  String myDisplayName = 'Vault Member';
 
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -42,12 +69,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
     });
   }
 
-  // Generates or loads a random device identifier for this installation
   void _initDeviceIdentity() {
-    // Generate a short 6-digit hex identifier
     final rand = Random();
     final randomHex = (rand.nextInt(0xFFFFFF) + 0x100000).toRadixString(16);
-    myDeviceId = 'device_$randomHex';
+    myDeviceId = 'stealth_$randomHex';
   }
 
   @override
@@ -112,10 +137,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: const Color(0xFFB00020),
+            backgroundColor: VaultColors.errorRed,
             content: Text(
               'Error selecting image: $e',
-              style: const TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
             ),
           ),
         );
@@ -171,16 +199,19 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 errorMessage = match.group(1)?.trim() ?? errorMessage;
               }
             } else if (response.body.toLowerCase().contains('<!doctype')) {
-              errorMessage = 'Server configuration error (missing environment variables on host)';
+              errorMessage = 'Missing server environment variables';
             }
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              backgroundColor: const Color(0xFFB00020),
+              backgroundColor: VaultColors.errorRed,
               content: Text(
                 'Failed to send: $errorMessage',
-                style: const TextStyle(fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
               ),
             ),
           );
@@ -190,10 +221,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: const Color(0xFFB00020),
+            backgroundColor: VaultColors.errorRed,
             content: Text(
               'Network error: $e',
-              style: const TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
             ),
           ),
         );
@@ -247,15 +281,16 @@ class _LoadingScreenState extends State<LoadingScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: VaultColors.background,
           appBar: AppBar(
-            backgroundColor: Colors.black,
-            iconTheme: const IconThemeData(color: Colors.white),
+            backgroundColor: VaultColors.surface,
+            iconTheme: const IconThemeData(color: VaultColors.textPrimary),
             title: const Text(
-              'Image Preview',
+              'IMAGE VAULT',
               style: TextStyle(
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0,
+                color: VaultColors.textPrimary,
               ),
             ),
           ),
@@ -275,26 +310,39 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B141A), // Dark WhatsApp Background
+      backgroundColor: VaultColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFF1F2C34), // Dark WhatsApp Appbar
+        backgroundColor: VaultColors.surface,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: VaultColors.surfaceBorder,
+            height: 1,
+          ),
+        ),
         titleSpacing: 0,
         title: Row(
           children: [
-            const SizedBox(width: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.asset(
-                'assets/logo.png',
-                width: 36,
-                height: 36,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: 36,
-                  height: 36,
-                  color: const Color(0xFF00A884),
-                  child: const Icon(Icons.chat, color: Colors.white, size: 20),
+            const SizedBox(width: 14),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: VaultColors.cyberViolet, width: 1.5),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/logo.png',
+                  width: 34,
+                  height: 34,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 34,
+                    height: 34,
+                    color: VaultColors.cyberViolet,
+                    child: const Icon(Icons.shield, color: Colors.white, size: 18),
+                  ),
                 ),
               ),
             ),
@@ -302,21 +350,32 @@ class _LoadingScreenState extends State<LoadingScreen> {
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Wechat',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                    color: Colors.white,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'Wechat',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.8,
+                        color: VaultColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(width: 6),
+                    Icon(
+                      Icons.lock_rounded,
+                      size: 13,
+                      color: VaultColors.cyberViolet,
+                    ),
+                  ],
                 ),
                 Text(
-                  'Private Encrypted Room',
+                  'STEALTH ENCRYPTED VAULT',
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF8696A0),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.9,
+                    color: VaultColors.cyanShield,
                   ),
                 ),
               ],
@@ -324,82 +383,96 @@ class _LoadingScreenState extends State<LoadingScreen> {
           ],
         ),
         actions: [
-          // Device identity pill (Allows switching if testing on one device)
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: PopupMenuButton<String>(
-              color: const Color(0xFF233138),
-              icon: const Icon(Icons.more_vert, color: Color(0xFFAEBAC1)),
-              onSelected: (value) {
-                if (value == 'switch_device') {
-                  setState(() {
-                    final rand = Random();
-                    final randomHex = (rand.nextInt(0xFFFFFF) + 0x100000).toRadixString(16);
-                    myDeviceId = 'device_$randomHex';
-                    _messages = [];
-                  });
-                  _fetchMessages();
-                } else if (value == 'clear_chat') {
-                  _clearAllChat();
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'switch_device',
-                  child: Text(
-                    'Simulate Other Device',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
+          PopupMenuButton<String>(
+            color: VaultColors.surface,
+            icon: const Icon(Icons.more_vert, color: VaultColors.textSecondary),
+            onSelected: (value) {
+              if (value == 'switch_device') {
+                setState(() {
+                  final rand = Random();
+                  final randomHex = (rand.nextInt(0xFFFFFF) + 0x100000).toRadixString(16);
+                  myDeviceId = 'stealth_$randomHex';
+                  _messages = [];
+                });
+                _fetchMessages();
+              } else if (value == 'clear_chat') {
+                _clearAllChat();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'switch_device',
+                child: Row(
+                  children: [
+                    Icon(Icons.swap_horiz, size: 18, color: VaultColors.violetLight),
+                    SizedBox(width: 10),
+                    Text(
+                      'Simulate Other Device',
+                      style: TextStyle(
+                        color: VaultColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                const PopupMenuItem(
-                  value: 'clear_chat',
-                  child: Text(
-                    'Clear Chat',
-                    style: TextStyle(
-                      color: Color(0xFFEF5350),
-                      fontWeight: FontWeight.w700,
+              ),
+              const PopupMenuItem(
+                value: 'clear_chat',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_forever, size: 18, color: VaultColors.errorRed),
+                    SizedBox(width: 10),
+                    Text(
+                      'Purge All Messages',
+                      style: TextStyle(
+                        color: VaultColors.errorRed,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: Column(
         children: [
-          // Top Notice: 5-Hour Expiry reminder
+          // Top Stealth Notice: 5-Hour Countdown reminder
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
-            color: const Color(0xFF182229),
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+            decoration: const BoxDecoration(
+              color: VaultColors.bannerBg,
+              border: Border(
+                bottom: BorderSide(color: VaultColors.surfaceBorder, width: 1),
+              ),
+            ),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.shield_outlined, size: 14, color: Color(0xFF00A884)),
+                Icon(Icons.timer_outlined, size: 13, color: VaultColors.flameTimer),
                 SizedBox(width: 8),
                 Text(
-                  'EPHEMERAL: CHATS & IMAGES SELF-DESTRUCT 5 HOURS AFTER SEEN',
+                  'CONFIDENTIAL • DESTROYS 5 HOURS AFTER SEEN',
                   style: TextStyle(
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.6,
-                    color: Color(0xFF00A884),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8,
+                    color: VaultColors.flameTimer,
                   ),
                 ),
               ],
             ),
           ),
 
-          // Message list area
+          // Message stream area
           Expanded(
             child: _isLoading && _messages.isEmpty
                 ? const Center(
                     child: CircularProgressIndicator(
-                      color: Color(0xFF00A884),
+                      color: VaultColors.cyberViolet,
                     ),
                   )
                 : _messages.isEmpty
@@ -408,34 +481,38 @@ class _LoadingScreenState extends State<LoadingScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF1F2C34),
-                                shape: BoxShape.circle,
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: VaultColors.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: VaultColors.surfaceBorder,
+                                  width: 1.5,
+                                ),
                               ),
                               child: const Icon(
-                                Icons.lock_outline,
-                                size: 36,
-                                color: Color(0xFF8696A0),
+                                Icons.fingerprint,
+                                size: 44,
+                                color: VaultColors.violetLight,
                               ),
                             ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 16),
                             const Text(
-                              'NO ACTIVE MESSAGES',
+                              'VAULT EMPTY',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w900,
-                                letterSpacing: 0.8,
-                                color: Color(0xFFE9EDEF),
+                                letterSpacing: 1.2,
+                                color: VaultColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 6),
                             const Text(
-                              'Send a message or image to start chatting',
+                              'Messages & photos vanish 5 hours after viewing',
                               style: TextStyle(
                                 fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF8696A0),
+                                fontWeight: FontWeight.w700,
+                                color: VaultColors.textMuted,
                               ),
                             ),
                           ],
@@ -444,7 +521,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     : ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
                         itemCount: _messages.length,
                         itemBuilder: (context, index) {
                           final msg = _messages[index];
@@ -455,41 +534,47 @@ class _LoadingScreenState extends State<LoadingScreen> {
                           final timeStr = _formatTime(msg['createdAt']);
 
                           return Align(
-                            // Right for Me, Left for Them (WhatsApp style)
+                            // Right side for Me, Left side for Them
                             alignment: isMe
                                 ? Alignment.centerRight
                                 : Alignment.centerLeft,
                             child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 3),
+                              margin: const EdgeInsets.symmetric(vertical: 4),
                               constraints: BoxConstraints(
                                 maxWidth:
                                     MediaQuery.of(context).size.width * 0.78,
                               ),
                               decoration: BoxDecoration(
-                                // Dark WhatsApp Green for Me, Dark Charcoal for Them
+                                // Midnight Royal Violet for Me, Tactical Slate for Them
                                 color: isMe
-                                    ? const Color(0xFF005C4B)
-                                    : const Color(0xFF202C33),
+                                    ? VaultColors.myBubble
+                                    : VaultColors.theirBubble,
                                 borderRadius: BorderRadius.only(
-                                  topLeft: const Radius.circular(12),
-                                  topRight: const Radius.circular(12),
-                                  bottomLeft: Radius.circular(isMe ? 12 : 2),
-                                  bottomRight: Radius.circular(isMe ? 2 : 12),
+                                  topLeft: const Radius.circular(14),
+                                  topRight: const Radius.circular(14),
+                                  bottomLeft: Radius.circular(isMe ? 14 : 2),
+                                  bottomRight: Radius.circular(isMe ? 2 : 14),
+                                ),
+                                border: Border.all(
+                                  color: isMe
+                                      ? VaultColors.myBubbleBorder
+                                      : VaultColors.theirBubbleBorder,
+                                  width: 1.2,
                                 ),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(9),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Image payload (ImageKit)
+                                    // Image Content (ImageKit)
                                     if (hasImage) ...[
                                       GestureDetector(
                                         onTap: () =>
                                             _openImagePreview(msg['imageUrl']),
                                         child: ClipRRect(
                                           borderRadius:
-                                              BorderRadius.circular(8),
+                                              BorderRadius.circular(10),
                                           child: Stack(
                                             children: [
                                               Image.network(
@@ -502,14 +587,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
                                                   }
                                                   return Container(
                                                     height: 190,
-                                                    color:
-                                                        const Color(0xFF111B21),
+                                                    color: VaultColors.surface,
                                                     child: const Center(
                                                       child:
                                                           CircularProgressIndicator(
                                                         strokeWidth: 2,
-                                                        color:
-                                                            Color(0xFF00A884),
+                                                        color: VaultColors
+                                                            .cyberViolet,
                                                       ),
                                                     ),
                                                   );
@@ -518,27 +602,25 @@ class _LoadingScreenState extends State<LoadingScreen> {
                                                         stackTrace) =>
                                                     Container(
                                                   height: 80,
-                                                  color:
-                                                      const Color(0xFF182229),
+                                                  color: const Color(0xFF1B1115),
                                                   padding:
                                                       const EdgeInsets.all(12),
                                                   child: const Row(
                                                     children: [
                                                       Icon(
-                                                        Icons
-                                                            .broken_image_outlined,
-                                                        color:
-                                                            Color(0xFFEF5350),
+                                                        Icons.lock_clock,
+                                                        color: VaultColors
+                                                            .errorRed,
                                                       ),
                                                       SizedBox(width: 8),
                                                       Text(
-                                                        'Image Expired / Deleted',
+                                                        'Expired / Purged from Vault',
                                                         style: TextStyle(
-                                                          fontSize: 12,
+                                                          fontSize: 11,
                                                           fontWeight:
-                                                              FontWeight.w700,
-                                                          color:
-                                                              Color(0xFFEF5350),
+                                                              FontWeight.w800,
+                                                          color: VaultColors
+                                                              .errorRed,
                                                         ),
                                                       ),
                                                     ],
@@ -552,7 +634,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                                                   padding:
                                                       const EdgeInsets.all(4),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.black54,
+                                                    color: Colors.black87,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             4),
@@ -571,7 +653,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                                       const SizedBox(height: 6),
                                     ],
 
-                                    // Text payload
+                                    // Text Message Content
                                     if ((msg['text'] ?? '')
                                         .toString()
                                         .isNotEmpty)
@@ -580,14 +662,15 @@ class _LoadingScreenState extends State<LoadingScreen> {
                                         style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
-                                          color: Color(0xFFE9EDEF),
+                                          color: VaultColors.textPrimary,
                                           letterSpacing: 0.2,
+                                          height: 1.3,
                                         ),
                                       ),
 
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 5),
 
-                                    // Timestamp, Seen & 5h Expiry Badge
+                                    // Footer: Timestamp & 5h Seen Expiry Status
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -596,34 +679,47 @@ class _LoadingScreenState extends State<LoadingScreen> {
                                           style: const TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
-                                            color: Color(0xFF8696A0),
+                                            color: VaultColors.textMuted,
                                           ),
                                         ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          isSeen
-                                              ? 'Seen • ${_formatExpiry(expireAt)}'
-                                              : 'Unseen',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w800,
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                            vertical: 1.5,
+                                          ),
+                                          decoration: BoxDecoration(
                                             color: isSeen
-                                                ? (isMe
-                                                    ? const Color(0xFF53BDEB)
-                                                    : const Color(0xFF00A884))
-                                                : const Color(0xFF8696A0),
+                                                ? VaultColors.flameTimer
+                                                    .withValues(alpha: 0.15)
+                                                : VaultColors.surfaceBorder,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            isSeen
+                                                ? _formatExpiry(expireAt)
+                                                : 'Delivered',
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 0.3,
+                                              color: isSeen
+                                                  ? VaultColors.flameTimer
+                                                  : VaultColors.textMuted,
+                                            ),
                                           ),
                                         ),
                                         if (isMe) ...[
-                                          const SizedBox(width: 4),
+                                          const SizedBox(width: 5),
                                           Icon(
                                             isSeen
                                                 ? Icons.done_all
                                                 : Icons.done,
-                                            size: 14,
+                                            size: 13,
                                             color: isSeen
-                                                ? const Color(0xFF53BDEB)
-                                                : const Color(0xFF8696A0),
+                                                ? VaultColors.violetLight
+                                                : VaultColors.textMuted,
                                           ),
                                         ],
                                       ],
@@ -637,20 +733,34 @@ class _LoadingScreenState extends State<LoadingScreen> {
                       ),
           ),
 
-          // Selected photo preview banner
+          // Attached Image Preview tray
           if (_selectedImage != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              color: const Color(0xFF182229),
+              decoration: const BoxDecoration(
+                color: VaultColors.surface,
+                border: Border(
+                  top: BorderSide(color: VaultColors.surfaceBorder, width: 1),
+                ),
+              ),
               child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Image.file(
-                      _selectedImage!,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: VaultColors.cyberViolet,
+                        width: 1.2,
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: Image.file(
+                        _selectedImage!,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -659,95 +769,135 @@ class _LoadingScreenState extends State<LoadingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'PHOTO ATTACHED',
+                          'CONFIDENTIAL ATTACHMENT',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.6,
+                            color: VaultColors.textPrimary,
                           ),
                         ),
                         Text(
-                          'Uploads directly to ImageKit',
+                          'Uploads encrypted to ImageKit CDN',
                           style: TextStyle(
                             fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF8696A0),
+                            fontWeight: FontWeight.w700,
+                            color: VaultColors.textMuted,
                           ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Color(0xFFEF5350)),
+                    icon: const Icon(Icons.close, color: VaultColors.errorRed),
                     onPressed: () => setState(() => _selectedImage = null),
                   ),
                 ],
               ),
             ),
 
-          // Bottom Input Bar
+          // Bottom Input Console
           SafeArea(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              color: const Color(0xFF202C33), // Dark Input Bar
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: const BoxDecoration(
+                color: VaultColors.surface,
+                border: Border(
+                  top: BorderSide(color: VaultColors.surfaceBorder, width: 1),
+                ),
+              ),
               child: Row(
                 children: [
-                  // Camera button
+                  // Camera trigger
                   IconButton(
-                    icon: const Icon(Icons.camera_alt, color: Color(0xFF8696A0)),
+                    icon: const Icon(Icons.camera_alt_outlined,
+                        color: VaultColors.violetLight),
                     onPressed: () => _pickImage(ImageSource.camera),
                   ),
 
-                  // Gallery button
+                  // Image attachment trigger
                   IconButton(
-                    icon: const Icon(Icons.image, color: Color(0xFF8696A0)),
+                    icon: const Icon(Icons.add_photo_alternate_outlined,
+                        color: VaultColors.violetLight),
                     onPressed: () => _pickImage(ImageSource.gallery),
                   ),
 
-                  // Message Input
+                  // Cryptographic Message Field
                   Expanded(
                     child: TextField(
                       controller: _messageController,
                       minLines: 1,
                       maxLines: 4,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: VaultColors.textPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Type a message...',
+                        hintText: 'Type confidential message...',
                         hintStyle: const TextStyle(
-                          color: Color(0xFF8696A0),
+                          color: VaultColors.textMuted,
                           fontWeight: FontWeight.w600,
                         ),
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                         filled: true,
-                        fillColor: const Color(0xFF2A3942),
+                        fillColor: const Color(0xFF141823),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(22),
+                          borderSide: const BorderSide(
+                            color: VaultColors.surfaceBorder,
+                            width: 1,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(22),
+                          borderSide: const BorderSide(
+                            color: VaultColors.surfaceBorder,
+                            width: 1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(22),
+                          borderSide: const BorderSide(
+                            color: VaultColors.cyberViolet,
+                            width: 1.5,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
 
-                  // Send Action Button
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: const Color(0xFF00A884),
+                  // High-contrast Send Button
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: VaultColors.cyberViolet,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: VaultColors.cyberViolet.withValues(alpha: 0.35),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
                     child: _isSending
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                        ? const Center(
+                            child: SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             ),
                           )
                         : IconButton(
-                            icon: const Icon(Icons.send,
+                            icon: const Icon(Icons.send_rounded,
                                 color: Colors.white, size: 20),
                             onPressed: _sendMessage,
                           ),
@@ -761,7 +911,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     );
   }
 
-  // Clear chat option
+  // Purge chat
   Future<void> _clearAllChat() async {
     try {
       await http.delete(Uri.parse('$baseUrl/api/chat/clear'));
