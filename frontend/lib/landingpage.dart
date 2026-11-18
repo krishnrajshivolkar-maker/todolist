@@ -158,11 +158,28 @@ class _LoadingScreenState extends State<LoadingScreen> {
         _scrollToBottom();
       } else {
         if (mounted) {
+          String errorMessage = 'Server error (${response.statusCode})';
+          try {
+            final decoded = jsonDecode(response.body);
+            if (decoded is Map && decoded.containsKey('message')) {
+              errorMessage = decoded['message'].toString();
+            }
+          } catch (_) {
+            if (response.body.contains('<pre>')) {
+              final match = RegExp(r'<pre>(.*?)</pre>', dotAll: true).firstMatch(response.body);
+              if (match != null) {
+                errorMessage = match.group(1)?.trim() ?? errorMessage;
+              }
+            } else if (response.body.toLowerCase().contains('<!doctype')) {
+              errorMessage = 'Server configuration error (missing environment variables on host)';
+            }
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: const Color(0xFFB00020),
               content: Text(
-                'Failed to send: ${response.body}',
+                'Failed to send: $errorMessage',
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
