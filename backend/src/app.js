@@ -17,8 +17,19 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 const todoRoutes = require("./routes/todo.route");
+const chatRoutes = require("./routes/chat.route");
+const { cleanupExpiredMessages } = require("./controllers/chat.controller");
 
 app.use("/api/todo", todoRoutes);
+app.use("/api/chat", chatRoutes);
+
+// Periodic cleanup for expired messages and ImageKit media (runs every 10 minutes)
+const cleanupInterval = setInterval(() => {
+    cleanupExpiredMessages();
+}, 10 * 60 * 1000);
+if (cleanupInterval.unref) {
+    cleanupInterval.unref();
+}
 
 app.get("/health", (req, res) => {
     res.status(200).json({ message: "Server is running", timestamp: new Date().toISOString() });
