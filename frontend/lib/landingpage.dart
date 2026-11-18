@@ -49,9 +49,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
 
+  OverlayEntry? _notifOverlay;
+
   final String baseUrl = 'https://todolist-o75o.onrender.com';
 
   List<dynamic> _messages = [];
+  final Set<String> _knownMessageIds = {};
+  bool _isInitialFetch = true;
   File? _selectedImage;
   bool _isLoading = false;
   bool _isSending = false;
@@ -69,6 +73,95 @@ class _LoadingScreenState extends State<LoadingScreen> {
     });
   }
 
+  // Show a heads-up banner at the top of the screen for 3 seconds
+  void _showNewMessageNotification({
+    required String sender,
+    required String previewText,
+  }) {
+    // Remove any existing banner first
+    _notifOverlay?.remove();
+    _notifOverlay = null;
+
+    _notifOverlay = OverlayEntry(
+      builder: (ctx) => Positioned(
+        top: MediaQuery.of(ctx).padding.top + 8,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1030),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: VaultColors.cyberViolet, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: VaultColors.cyberViolet.withValues(alpha: 0.35),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: VaultColors.cyberViolet.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.shield_outlined,
+                    color: VaultColors.cyberViolet,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Wechat  •  $sender',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: VaultColors.violetLight,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        previewText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: VaultColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_notifOverlay!);
+
+    // Auto-dismiss after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      _notifOverlay?.remove();
+      _notifOverlay = null;
+    });
+  }
+
   void _initDeviceIdentity() {
     final rand = Random();
     final randomHex = (rand.nextInt(0xFFFFFF) + 0x100000).toRadixString(16);
@@ -78,6 +171,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _notifOverlay?.remove();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -98,6 +192,26 @@ class _LoadingScreenState extends State<LoadingScreen> {
         if (mounted && data['success'] == true) {
           final List<dynamic> fetched = data['data'] ?? [];
           final bool shouldScroll = _messages.length != fetched.length;
+
+          // Check for new incoming messages to alert the user
+          for (final msg in fetched) {
+            final String msgId = (msg['_id'] ?? '').toString();
+            if (msgId.isNotEmpty && !_knownMessageIds.contains(msgId)) {
+              _knownMessageIds.add(msgId);
+
+              // Only notify if not the initial load and the message is from the other person
+              if (!_isInitialFetch && msg['senderId'] != myDeviceId) {
+                final String preview = (msg['imageUrl'] != null)
+                    ? 'Confidential image attached'
+                    : (msg['text'] ?? 'New secret message');
+                _showNewMessageNotification(
+                  sender: msg['senderName'] ?? 'Vault Member',
+                  previewText: preview,
+                );
+              }
+            }
+          }
+          _isInitialFetch = false;
 
           setState(() {
             _messages = fetched;
@@ -917,6 +1031,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       await http.delete(Uri.parse('$baseUrl/api/chat/clear'));
       setState(() {
         _messages = [];
+        _knownMessageIds.clear();
       });
     } catch (_) {}
   }
